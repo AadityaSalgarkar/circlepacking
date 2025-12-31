@@ -2,8 +2,8 @@ import { Circle, Github, ChevronDown } from "lucide-react";
 import { useAppStore, type DataSource } from "@/stores/appStore";
 
 const DATA_SOURCES: { value: DataSource; label: string }[] = [
-  { value: 'openevolve', label: 'OpenEvolve' },
   { value: 'shinka', label: 'ShinkaEvolve' },
+  { value: 'openevolve', label: 'OpenEvolve' },
 ];
 
 export function Header() {
@@ -44,7 +44,7 @@ export function Header() {
           </div>
 
           <a
-            href="https://github.com"
+            href="https://github.com/AadityaSalgarkar/circlepacking"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)] transition-colors"

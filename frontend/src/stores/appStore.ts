@@ -26,16 +26,16 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  dataSource: 'openevolve',
+  dataSource: 'shinka',
   setDataSource: (source) => set({
     dataSource: source,
     // Reset to first checkpoint/generation when switching sources
-    currentCheckpoint: source === 'openevolve' ? 100 : 19,
+    currentCheckpoint: source === 'shinka' ? 19 : 100,
     selectedProgram: null,
     codePanelOpen: false,
   }),
 
-  currentCheckpoint: 100,
+  currentCheckpoint: 19,
   setCurrentCheckpoint: (checkpoint) => set({ currentCheckpoint: checkpoint }),
 
   selectedProgram: null,
