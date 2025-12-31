@@ -3,6 +3,8 @@ import { useLineage, useCheckpoint } from '@/hooks/useCheckpointData';
 import { useAppStore } from '@/stores/appStore';
 import type { LineageNode } from '@/types';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 const ISLAND_COLORS = [
   '#1f77b4', // blue
   '#ff7f0e', // orange
@@ -245,7 +247,7 @@ export function LineageGraph() {
   const handleCanvasClick = async (_e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!layout || !hoveredNode) return;
 
-    const response = await fetch(`/data/programs/${hoveredNode}.json`);
+    const response = await fetch(`${BASE_URL}data/programs/${hoveredNode}.json`);
     if (response.ok) {
       const program = await response.json();
       setSelectedProgram(program);

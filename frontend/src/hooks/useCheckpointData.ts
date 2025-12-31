@@ -2,13 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import type { CheckpointData, IndexData, Program, LineageData, MetricsTimelinePoint } from '@/types';
 import { useAppStore, type DataSource } from '@/stores/appStore';
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 function getBasePath(source: DataSource): string {
-  return source === 'shinka' ? '/data/shinka' : '/data';
+  return source === 'shinka' ? `${BASE_URL}data/shinka` : `${BASE_URL}data`;
 }
 
 function getCheckpointPath(source: DataSource): string {
   // ShinkaEvolve uses "generations" folder but same file naming
-  return source === 'shinka' ? '/data/shinka/generations' : '/data/checkpoints';
+  return source === 'shinka' ? `${BASE_URL}data/shinka/generations` : `${BASE_URL}data/checkpoints`;
 }
 
 export function useIndex() {
