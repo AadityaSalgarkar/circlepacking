@@ -59,6 +59,7 @@ Thumbs.db
 # Results and outputs
 results/
 checkpoints/
+!frontend/public/data/checkpoints/
 *.log
 logs/
 wandb/
