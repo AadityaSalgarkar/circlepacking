@@ -1,0 +1,158 @@
+{
+  "id": "a36a0708-4702-4fe6-bb3e-632c573b565d",
+  "code": "# EVOLVE-BLOCK-START\n\"\"\"Constructor-based circle packing for n=26 circles\"\"\"\n\nimport numpy as np\nfrom dataclasses import dataclass\nfrom typing import List, Tuple\n\n\n@dataclass\nclass PackingState:\n    \"\"\"Encapsulates the state of a circle packing solution.\"\"\"\n    centers: np.ndarray\n    radii: np.ndarray = None\n    \n    def compute_sum(self) -> float:\n        if self.radii is None:\n            self.radii = RadiusComputer.compute(self.centers)\n        return np.sum(self.radii)\n\n\nclass ConfigurationGenerator:\n    \"\"\"Generates diverse initial configurations for circle packing.\"\"\"\n    \n    @staticmethod\n    def generate_all(n: int = 26) -> List[np.ndarray]:\n        configs = []\n        \n        # Config 1: 5x5 + center optimized for edges\n        configs.append(ConfigurationGenerator._grid_5x5_plus_1())\n        \n        # Config 2: Hexagonal rows (4-5-4-5-4-4 pattern)\n        configs.append(ConfigurationGenerator._hex_rows_pattern())\n        \n        # Config 3: Offset hexagonal close-pack\n        configs.append(ConfigurationGenerator._hex_close_pack())\n        \n        # Config 4: Variable density - larger spacing in center\n        configs.append(ConfigurationGenerator._variable_density())\n        \n        # Config 5: Known good pattern approximation\n        configs.append(ConfigurationGenerator._known_good_approx())\n        \n        return configs\n    \n    @staticmethod\n    def _grid_5x5_plus_1() -> np.ndarray:\n        centers = np.zeros((26, 2))\n        idx = 0\n        for i in range(5):\n            for j in range(5):\n                centers[idx] = [0.1 + 0.2 * j, 0.1 + 0.2 * i]\n                idx += 1\n        centers[25] = [0.5, 0.5]\n        return centers\n    \n    @staticmethod\n    def _hex_rows_pattern() -> np.ndarray:\n        centers = []\n        row_counts = [4, 5, 4, 5, 4, 4]\n        y_positions = [0.085, 0.255, 0.425, 0.595, 0.765, 0.915]\n        for row_idx, (count, y) in enumerate(zip(row_counts, y_positions)):\n            x_start = 0.5 / count\n            for i in range(count):\n                centers.append([x_start + i / count, y])\n        return np.array(centers)\n    \n    @staticmethod\n    def _hex_close_pack() -> np.ndarray:\n        centers = []\n        r_est = 0.095\n        dy = r_est * np.sqrt(3)\n        y = r_est\n        row = 0\n        while len(centers) < 26 and y < 1 - r_est:\n            dx = 2 * r_est\n            x_start = r_est if row % 2 == 0 else r_est + r_est\n            x = x_start\n            while len(centers) < 26 and x < 1 - r_est:\n                centers.append([x, y])\n                x += dx\n            y += dy\n            row += 1\n        while len(centers) < 26:\n            centers.append([0.5, 0.5])\n        return np.array(centers[:26])\n    \n    @staticmethod\n    def _variable_density() -> np.ndarray:\n        centers = []\n        # 6 rows with variable counts\n        row_specs = [(5, 0.09), (5, 0.27), (4, 0.45), (4, 0.55), (4, 0.73), (4, 0.91)]\n        for count, y in row_specs:\n            for i in range(count):\n                x = (i + 0.5) / count\n                centers.append([x, y])\n        return np.array(centers)\n    \n    @staticmethod\n    def _known_good_approx() -> np.ndarray:\n        # Based on approximate pattern from literature for n=26\n        centers = []\n        # 5 rows of varying counts\n        rows = [\n            (5, 0.10, 0.10),  # (count, y, x_start)\n            (5, 0.29, 0.10),\n            (5, 0.48, 0.10),\n            (5, 0.67, 0.10),\n            (6, 0.88, 0.08),\n        ]\n        for count, y, x_start in rows:\n            spacing = (1 - 2 * x_start) / max(count - 1, 1)\n            for i in range(count):\n                centers.append([x_start + i * spacing, y])\n        return np.array(centers[:26])\n\n\nclass RadiusComputer:\n    \"\"\"Computes optimal radii for given center positions.\"\"\"\n    \n    @staticmethod\n    def compute(centers: np.ndarray, max_iters: int = 500) -> np.ndarray:\n        n = centers.shape[0]\n        \n        # Precompute distances\n        wall_dist = np.array([min(c[0], c[1], 1-c[0], 1-c[1]) for c in centers])\n        \n        pair_dist = np.full((n, n), np.inf)\n        for i in range(n):\n            for j in range(i + 1, n):\n                d = np.linalg.norm(centers[i] - centers[j])\n                pair_dist[i, j] = d\n                pair_dist[j, i] = d\n        \n        # Initialize radii\n        radii = wall_dist.copy()\n        \n        # Iterative constraint satisfaction\n        for _ in range(max_iters):\n            old_radii = radii.copy()\n            for i in range(n):\n                max_r = wall_dist[i]\n                for j in range(n):\n                    if i != j:\n                        max_r = min(max_r, pair_dist[i, j] - radii[j])\n                radii[i] = max(0.0001, max_r)\n            \n            if np.max(np.abs(radii - old_radii)) < 1e-12:\n                break\n        \n        return radii\n\n\nclass ForceEquilibriumOptimizer:\n    \"\"\"Optimizes circle positions using force-based simulation.\"\"\"\n    \n    @staticmethod\n    def optimize(centers: np.ndarray, iterations: int = 2000) -> np.ndarray:\n        n = centers.shape[0]\n        centers = centers.copy()\n        velocity = np.zeros_like(centers)\n        \n        for it in range(iterations):\n            progress = it / iterations\n            dt = 0.015 * (1 - progress) ** 1.5\n            damping = 0.85\n            \n            forces = np.zeros_like(centers)\n            \n            # Compute current radii to weight forces\n            radii = RadiusComputer.compute(centers)\n            \n            for i in range(n):\n                x, y = centers[i]\n                \n                # Wall repulsion (softer)\n                wall_k = 0.0005\n                eps = 0.01\n                forces[i, 0] += wall_k / (x + eps) ** 2 - wall_k / (1 - x + eps) ** 2\n                forces[i, 1] += wall_k / (y + eps) ** 2 - wall_k / (1 - y + eps) ** 2\n                \n                # Circle repulsion\n                for j in range(n):\n                    if i != j:\n                        diff = centers[i] - centers[j]\n                        dist = np.linalg.norm(diff)\n                        if dist > 0.001:\n                            # Stronger repulsion for overlapping or nearly touching\n                            target_dist = radii[i] + radii[j] + 0.01\n                            if dist < target_dist:\n                                force_mag = 0.001 * (target_dist - dist) / dist\n                            else:\n                                force_mag = 0.00005 / (dist ** 2)\n                            forces[i] += force_mag * diff / dist\n            \n            velocity = damping * velocity + dt * forces\n            centers = centers + velocity\n            centers = np.clip(centers, 0.015, 0.985)\n        \n        return centers\n\n\nclass GradientOptimizer:\n    \"\"\"Fine-tunes positions using numerical gradients.\"\"\"\n    \n    @staticmethod\n    def optimize(centers: np.ndarray, iterations: int = 300) -> np.ndarray:\n        n = centers.shape[0]\n        centers = centers.copy()\n        eps = 1e-6\n        \n        for it in range(iterations):\n            step = 0.005 * (1 - it / iterations) ** 0.5\n            current_sum = np.sum(RadiusComputer.compute(centers))\n            \n            grad = np.zeros_like(centers)\n            for i in range(n):\n                for d in range(2):\n                    c_plus = centers.copy()\n                    c_plus[i, d] = min(0.985, centers[i, d] + eps)\n                    grad[i, d] = (np.sum(RadiusComputer.compute(c_plus)) - current_sum) / eps\n            \n            centers = centers + step * grad\n            centers = np.clip(centers, 0.015, 0.985)\n        \n        return centers\n\n\nclass LocalSearchOptimizer:\n    \"\"\"Performs fine-grained local search.\"\"\"\n    \n    @staticmethod\n    def optimize(centers: np.ndarray) -> np.ndarray:\n        n = centers.shape[0]\n        centers = centers.copy()\n        best_sum = np.sum(RadiusComputer.compute(centers))\n        \n        for delta in [0.01, 0.005, 0.002, 0.001]:\n            improved = True\n            while improved:\n                improved = False\n                for i in range(n):\n                    for dx in [-delta, 0, delta]:\n                        for dy in [-delta, 0, delta]:\n                            if dx == 0 and dy == 0:\n                                continue\n                            new_centers = centers.copy()\n                            new_centers[i] = np.clip(centers[i] + [dx, dy], 0.015, 0.985)\n                            new_sum = np.sum(RadiusComputer.compute(new_centers))\n                            if new_sum > best_sum + 1e-9:\n                                centers = new_centers\n                                best_sum = new_sum\n                                improved = True\n        \n        return centers\n\n\ndef construct_packing() -> Tuple[np.ndarray, np.ndarray]:\n    \"\"\"Main entry point for circle packing construction.\"\"\"\n    n = 26\n    best_state = None\n    best_sum = 0\n    \n    configs = ConfigurationGenerator.generate_all(n)\n    \n    for config_idx, initial in enumerate(configs):\n        for trial in range(8):\n            np.random.seed(1000 * config_idx + trial)\n            \n            centers = initial.copy()\n            if trial > 0:\n                perturbation = 0.015 * trial * (np.random.random(centers.shape) - 0.5)\n                centers = np.clip(centers + perturbation, 0.02, 0.98)\n            \n            # Optimization pipeline\n            centers = ForceEquilibriumOptimizer.optimize(centers, iterations=1500)\n            centers = GradientOptimizer.optimize(centers, iterations=200)\n            \n            state = PackingState(centers)\n            total = state.compute_sum()\n            \n            if total > best_sum:\n                best_sum = total\n                best_state = state\n    \n    # Final refinement\n    best_state.centers = LocalSearchOptimizer.optimize(best_state.centers)\n    best_state.radii = RadiusComputer.compute(best_state.centers)\n    \n    return best_state.centers, best_state.radii\n\n\ndef compute_max_radii(centers: np.ndarray) -> np.ndarray:\n    \"\"\"Wrapper for compatibility.\"\"\"\n    return RadiusComputer.compute(centers)\n\n\n# EVOLVE-BLOCK-END\n\n\n# This part remains fixed (not evolved)\ndef run_packing():\n    \"\"\"Run the circle packing constructor for n=26\"\"\"\n    centers, radii = construct_packing()\n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    return centers, radii, sum_radii",
+  "parent_id": "316e4b3b-6730-48b5-b26d-9aa927ed7233",
+  "generation": 9,
+  "iteration_found": 9,
+  "metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.5391181733870503,
+    "target_ratio": 0.9636122100140609,
+    "combined_score": 0.9636122100140609
+  },
+  "island": 0,
+  "changes": "",
+  "parent_metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.6185779391484374,
+    "target_ratio": 0.9937677188419118,
+    "combined_score": 0.9937677188419118
+  },
+  "first_seen_checkpoint": 9,
+  "circles": {
+    "centers": [
+      [
+        0.11132624111916063,
+        0.11110732189939988
+      ],
+      [
+        0.3379503410174385,
+        0.11708259616513746
+      ],
+      [
+        0.5307694220019589,
+        0.08013542217233427
+      ],
+      [
+        0.6500270408089363,
+        0.16532064171766064
+      ],
+      [
+        0.8574559433034945,
+        0.14243924143289988
+      ],
+      [
+        0.12057910946718951,
+        0.34837923652999864
+      ],
+      [
+        0.3239764963720535,
+        0.31741206950420325
+      ],
+      [
+        0.5089509678209088,
+        0.26591125591524883
+      ],
+      [
+        0.7015958158286351,
+        0.319446833316039
+      ],
+      [
+        0.891509807902476,
+        0.39151025309349313
+      ],
+      [
+        0.28879840373932003,
+        0.4943595269500492
+      ],
+      [
+        0.43071510403047153,
+        0.42174610948093155
+      ],
+      [
+        0.5771857921423547,
+        0.4449700314341218
+      ],
+      [
+        0.734555418998289,
+        0.5051546941520475
+      ],
+      [
+        0.11291983539672759,
+        0.6066596964000917
+      ],
+      [
+        0.4584164045235851,
+        0.5816182879469333
+      ],
+      [
+        0.613385431909898,
+        0.583691527538507
+      ],
+      [
+        0.8949463003741418,
+        0.6058933724697535
+      ],
+      [
+        0.3025996127610646,
+        0.6957974686843489
+      ],
+      [
+        0.4602215919448391,
+        0.749334416070038
+      ],
+      [
+        0.5838682222420364,
+        0.7026187632360681
+      ],
+      [
+        0.7236420671960967,
+        0.6745025594773384
+      ],
+      [
+        0.13781334029773146,
+        0.8622159152733377
+      ],
+      [
+        0.374461680208865,
+        0.8986139785473218
+      ],
+      [
+        0.5954462417245051,
+        0.8823252732096848
+      ],
+      [
+        0.8562882782463479,
+        0.8552025155402092
+      ]
+    ],
+    "radii": [
+      0.11110732189939988,
+      0.11559553771479956,
+      0.08013542217233427,
+      0.06642139709069347,
+      0.1422657085701221,
+      0.12057910946718951,
+      0.08516214170362076,
+      0.10684409293652253,
+      0.09310113834333561,
+      0.10849019209752397,
+      0.09524822634053197,
+      0.06409844339078129,
+      0.08363009053094203,
+      0.0848554966367635,
+      0.11291983539672759,
+      0.09549861520805643,
+      0.05948427988512432,
+      0.10408501728107691,
+      0.09641586180930947,
+      0.07005002976367397,
+      0.062125859902627645,
+      0.08044780052258588,
+      0.13778408472666226,
+      0.10138602145267817,
+      0.11767472679031521,
+      0.1437117217536521
+    ]
+  }
+}

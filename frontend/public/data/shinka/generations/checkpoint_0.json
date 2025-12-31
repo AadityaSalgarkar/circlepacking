@@ -1,0 +1,21 @@
+{
+  "checkpoint": 0,
+  "iteration": 0,
+  "best_program_id": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+  "best_metrics": {
+    "validity": 1.0,
+    "sum_radii": 0.9597642169962064,
+    "target_ratio": 0.36423689449571406,
+    "combined_score": 0.36423689449571406
+  },
+  "feature_map": {},
+  "islands": [],
+  "archive": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae"
+  ],
+  "island_generations": [],
+  "program_count": 1,
+  "program_ids": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae"
+  ]
+}

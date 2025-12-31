@@ -1,0 +1,374 @@
+{
+  "nodes": [
+    {
+      "id": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "generation": 0,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 0.9597642169962064,
+        "target_ratio": 0.36423689449571406,
+        "combined_score": 0.36423689449571406
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "a6a9c10a-919e-4938-846b-04464ad779c1",
+      "generation": 1,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.3529097479456977,
+        "target_ratio": 0.8929448758807202,
+        "combined_score": 0.8929448758807202
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+      "generation": 2,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.36915541225031,
+        "target_ratio": 0.8991102133777268,
+        "combined_score": 0.8991102133777268
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8",
+      "generation": 3,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.4012614907693197,
+        "target_ratio": 0.9112946834039165,
+        "combined_score": 0.9112946834039165
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "e31ae32b-acf2-48ec-8c03-8c2f500c8013",
+      "generation": 4,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 1.3476559606186025,
+        "target_ratio": 0.511444387331538,
+        "combined_score": 0.511444387331538
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "316e4b3b-6730-48b5-b26d-9aa927ed7233",
+      "generation": 5,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.6185779391484374,
+        "target_ratio": 0.9937677188419118,
+        "combined_score": 0.9937677188419118
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "a261ba9d-c967-481e-b789-263ad0695af7",
+      "generation": 6,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 1.669861836894098,
+        "target_ratio": 0.6337236572653124,
+        "combined_score": 0.6337236572653124
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "b062485b-2229-48f4-95c3-66c9061f8428",
+      "generation": 7,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.5419085133015944,
+        "target_ratio": 0.9646711625432997,
+        "combined_score": 0.9646711625432997
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "0e99d8b1-5e42-4ddb-b41b-cc59296cebc8",
+      "generation": 8,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.2637822590600933,
+        "target_ratio": 0.8591204019203391,
+        "combined_score": 0.8591204019203391
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "a36a0708-4702-4fe6-bb3e-632c573b565d",
+      "generation": 9,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.5391181733870503,
+        "target_ratio": 0.9636122100140609,
+        "combined_score": 0.9636122100140609
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "7f4eb3cc-1edd-44ef-8007-a4eee423cf43",
+      "generation": 10,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 0,
+        "target_ratio": 0,
+        "combined_score": 0
+      },
+      "has_children": false,
+      "has_circles": false
+    },
+    {
+      "id": "8648a57d-3eac-4683-9a59-d3785d913360",
+      "generation": 11,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.6267564600005433,
+        "target_ratio": 0.9968715218218381,
+        "combined_score": 0.9968715218218381
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "9957414c-b0e9-4bdf-978e-5c11f88a383d",
+      "generation": 12,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.1121365937027496,
+        "target_ratio": 0.8015698647828272,
+        "combined_score": 0.8015698647828272
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "7a90ae81-0388-4945-aeb7-1877532eef7e",
+      "generation": 13,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.3979302295480496,
+        "target_ratio": 0.9100304476463187,
+        "combined_score": 0.9100304476463187
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "3b65fea5-d211-433c-8b14-b9233e4b2e36",
+      "generation": 14,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.6000458678129004,
+        "target_ratio": 0.9867346746918029,
+        "combined_score": 0.9867346746918029
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "7e456108-b3ac-4b10-9572-8f415b801912",
+      "generation": 15,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.4374225152754883,
+        "target_ratio": 0.9250180323626143,
+        "combined_score": 0.9250180323626143
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "cbf4f2d0-1fb8-41ff-9a0f-4d19609f62f1",
+      "generation": 16,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.483831038490098,
+        "target_ratio": 0.9426303751385572,
+        "combined_score": 0.9426303751385572
+      },
+      "has_children": true,
+      "has_circles": true
+    },
+    {
+      "id": "47ecec66-9ba5-4743-af35-9f493f2a0f82",
+      "generation": 17,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.476050053596447,
+        "target_ratio": 0.9396774396950465,
+        "combined_score": 0.9396774396950465
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "c2b23643-2047-4447-a1b4-6f4b752f3205",
+      "generation": 18,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 0,
+        "target_ratio": 0,
+        "combined_score": 0
+      },
+      "has_children": false,
+      "has_circles": false
+    },
+    {
+      "id": "12a2012b-2771-4960-aa9a-45cb4eecdabf",
+      "generation": 19,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.627203611103396,
+        "target_ratio": 0.997041218635065,
+        "combined_score": 0.997041218635065
+      },
+      "has_children": false,
+      "has_circles": true
+    },
+    {
+      "id": "best",
+      "generation": 19,
+      "island": 0,
+      "metrics": {
+        "validity": 1.0,
+        "sum_radii": 2.627203611103396,
+        "target_ratio": 0.997041218635065,
+        "combined_score": 0.997041218635065
+      },
+      "has_children": false,
+      "has_circles": true
+    }
+  ],
+  "edges": [
+    {
+      "source": "49acb578-de98-4550-81e7-e7ac8c083ec7",
+      "target": "a6a9c10a-919e-4938-846b-04464ad779c1",
+      "checkpoint": 1
+    },
+    {
+      "source": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "target": "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+      "checkpoint": 2
+    },
+    {
+      "source": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "target": "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8",
+      "checkpoint": 3
+    },
+    {
+      "source": "a6a9c10a-919e-4938-846b-04464ad779c1",
+      "target": "e31ae32b-acf2-48ec-8c03-8c2f500c8013",
+      "checkpoint": 4
+    },
+    {
+      "source": "e31ae32b-acf2-48ec-8c03-8c2f500c8013",
+      "target": "316e4b3b-6730-48b5-b26d-9aa927ed7233",
+      "checkpoint": 5
+    },
+    {
+      "source": "e31ae32b-acf2-48ec-8c03-8c2f500c8013",
+      "target": "a261ba9d-c967-481e-b789-263ad0695af7",
+      "checkpoint": 6
+    },
+    {
+      "source": "a6a9c10a-919e-4938-846b-04464ad779c1",
+      "target": "b062485b-2229-48f4-95c3-66c9061f8428",
+      "checkpoint": 7
+    },
+    {
+      "source": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "target": "0e99d8b1-5e42-4ddb-b41b-cc59296cebc8",
+      "checkpoint": 8
+    },
+    {
+      "source": "316e4b3b-6730-48b5-b26d-9aa927ed7233",
+      "target": "a36a0708-4702-4fe6-bb3e-632c573b565d",
+      "checkpoint": 9
+    },
+    {
+      "source": "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8",
+      "target": "7f4eb3cc-1edd-44ef-8007-a4eee423cf43",
+      "checkpoint": 10
+    },
+    {
+      "source": "49acb578-de98-4550-81e7-e7ac8c083ec7",
+      "target": "8648a57d-3eac-4683-9a59-d3785d913360",
+      "checkpoint": 11
+    },
+    {
+      "source": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "target": "9957414c-b0e9-4bdf-978e-5c11f88a383d",
+      "checkpoint": 12
+    },
+    {
+      "source": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+      "target": "7a90ae81-0388-4945-aeb7-1877532eef7e",
+      "checkpoint": 13
+    },
+    {
+      "source": "b062485b-2229-48f4-95c3-66c9061f8428",
+      "target": "3b65fea5-d211-433c-8b14-b9233e4b2e36",
+      "checkpoint": 14
+    },
+    {
+      "source": "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+      "target": "7e456108-b3ac-4b10-9572-8f415b801912",
+      "checkpoint": 15
+    },
+    {
+      "source": "7a90ae81-0388-4945-aeb7-1877532eef7e",
+      "target": "cbf4f2d0-1fb8-41ff-9a0f-4d19609f62f1",
+      "checkpoint": 16
+    },
+    {
+      "source": "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8",
+      "target": "47ecec66-9ba5-4743-af35-9f493f2a0f82",
+      "checkpoint": 17
+    },
+    {
+      "source": "cbf4f2d0-1fb8-41ff-9a0f-4d19609f62f1",
+      "target": "c2b23643-2047-4447-a1b4-6f4b752f3205",
+      "checkpoint": 18
+    },
+    {
+      "source": "a6a9c10a-919e-4938-846b-04464ad779c1",
+      "target": "12a2012b-2771-4960-aa9a-45cb4eecdabf",
+      "checkpoint": 19
+    }
+  ]
+}

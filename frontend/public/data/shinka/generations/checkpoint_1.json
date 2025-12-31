@@ -1,0 +1,23 @@
+{
+  "checkpoint": 1,
+  "iteration": 1,
+  "best_program_id": "a6a9c10a-919e-4938-846b-04464ad779c1",
+  "best_metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.3529097479456977,
+    "target_ratio": 0.8929448758807202,
+    "combined_score": 0.8929448758807202
+  },
+  "feature_map": {},
+  "islands": [],
+  "archive": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae",
+    "a6a9c10a-919e-4938-846b-04464ad779c1"
+  ],
+  "island_generations": [],
+  "program_count": 2,
+  "program_ids": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae",
+    "a6a9c10a-919e-4938-846b-04464ad779c1"
+  ]
+}

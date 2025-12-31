@@ -1,0 +1,92 @@
+[
+  {
+    "checkpoint": 10,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 20,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 30,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 40,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 50,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 60,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 70,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 80,
+    "iteration": 9,
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  {
+    "checkpoint": 90,
+    "iteration": 84,
+    "validity": 1.0,
+    "sum_radii": 2.1209506498666437,
+    "target_ratio": 0.8049148576344,
+    "combined_score": 0.8049148576344,
+    "eval_time": 1.5659523010253906
+  },
+  {
+    "checkpoint": 100,
+    "iteration": 91,
+    "validity": 1.0,
+    "sum_radii": 2.128862842612575,
+    "target_ratio": 0.8079175873292506,
+    "combined_score": 0.8079175873292506,
+    "eval_time": 0.5886034965515137
+  }
+]

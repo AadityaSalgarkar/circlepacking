@@ -1,0 +1,160 @@
+{
+  "id": "63b58ade-ffc5-4e73-a771-1a4718708f53",
+  "code": "# EVOLVE-BLOCK-START\n\"\"\"Constructor-based circle packing for n=26 circles in a unit square\"\"\"\nimport numpy as np\n\n\ndef construct_packing():\n    \"\"\"\n    Construct a specific arrangement of 26 circles in a unit square\n    that attempts to maximize the sum of their radii.\n\n    Returns:\n        Tuple of (centers, radii, sum_of_radii)\n        centers: np.array of shape (26, 2) with (x, y) coordinates\n        radii: np.array of shape (26) with radius of each circle\n        sum_of_radii: Sum of all radii\n    \"\"\"\n    # Initialize arrays for 26 circles\n    n = 26\n    centers = np.zeros((n, 2))\n    \n    # Create a more optimized arrangement based on hexagonal packing principles\n    # with adjustments for the square boundary\n    \n    # Parameters for the arrangement\n    r1 = 0.1  # Base radius for initial placement (will be optimized later)\n    \n    # Central large circle\n    centers[0] = [0.5, 0.5]\n    \n    # First hexagonal ring (6 circles)\n    for i in range(6):\n        angle = 2 * np.pi * i / 6\n        centers[i+1] = [0.5 + 2.2*r1 * np.cos(angle), 0.5 + 2.2*r1 * np.sin(angle)]\n    \n    # Second hexagonal ring (12 circles, staggered)\n    for i in range(12):\n        angle = 2 * np.pi * i / 12 + np.pi/12  # Offset for staggering\n        centers[i+7] = [0.5 + 4.2*r1 * np.cos(angle), 0.5 + 4.2*r1 * np.sin(angle)]\n    \n    # Corner circles (4 circles)\n    centers[19] = [0.15, 0.15]  # Bottom-left\n    centers[20] = [0.85, 0.15]  # Bottom-right\n    centers[21] = [0.15, 0.85]  # Top-left\n    centers[22] = [0.85, 0.85]  # Top-right\n    \n    # Additional circles for better space utilization\n    centers[23] = [0.5, 0.15]   # Bottom middle\n    centers[24] = [0.5, 0.85]   # Top middle\n    centers[25] = [0.3, 0.5]    # Left middle\n    \n    # Ensure all circles are inside the unit square\n    centers = np.clip(centers, 0.001, 0.999)\n    \n    # Compute maximum valid radii for this configuration\n    radii = compute_max_radii(centers)\n    \n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    \n    return centers, radii, sum_radii\n\n\ndef compute_max_radii(centers):\n    \"\"\"\n    Compute the maximum possible radii for each circle position\n    such that they don't overlap and stay within the unit square.\n\n    Args:\n        centers: np.array of shape (n, 2) with (x, y) coordinates\n\n    Returns:\n        np.array of shape (n) with radius of each circle\n    \"\"\"\n    n = centers.shape[0]\n    radii = np.zeros(n)\n    \n    # First, initialize radii based on distance to square borders\n    for i in range(n):\n        x, y = centers[i]\n        # Distance to borders\n        radii[i] = min(x, y, 1 - x, 1 - y)\n    \n    # Calculate distance matrix between all circle centers\n    distances = np.zeros((n, n))\n    for i in range(n):\n        for j in range(i+1, n):\n            distances[i, j] = distances[j, i] = np.sqrt(np.sum((centers[i] - centers[j]) ** 2))\n    \n    # Iteratively adjust radii to prevent overlaps\n    for _ in range(50):  # Limit iterations for efficiency\n        changes_made = False\n        \n        for i in range(n):\n            for j in range(n):\n                if i == j:\n                    continue\n                    \n                dist = distances[i, j]\n                if radii[i] + radii[j] > dist:\n                    # Calculate how much we need to reduce\n                    overlap = radii[i] + radii[j] - dist\n                    \n                    # Distribute the reduction proportionally to current radii\n                    total = radii[i] + radii[j]\n                    if total > 0:\n                        reduction_i = overlap * (radii[i] / total)\n                        reduction_j = overlap * (radii[j] / total)\n                        \n                        # Apply reductions\n                        old_i = radii[i]\n                        old_j = radii[j]\n                        radii[i] -= reduction_i\n                        radii[j] -= reduction_j\n                        \n                        # Check if significant changes were made\n                        if abs(old_i - radii[i]) > 1e-8 or abs(old_j - radii[j]) > 1e-8:\n                            changes_made = True\n        \n        # If no significant changes were made, we've converged\n        if not changes_made:\n            break\n    \n    # Final safety check to ensure no negative radii\n    radii = np.maximum(radii, 1e-6)\n    \n    return radii\n\n\ndef optimize_centers(centers, radii, iterations=100):\n    \"\"\"\n    Optimize circle positions to maximize the sum of radii.\n    \n    Args:\n        centers: Initial circle centers\n        radii: Initial circle radii\n        iterations: Number of optimization iterations\n        \n    Returns:\n        Tuple of (optimized_centers, optimized_radii)\n    \"\"\"\n    n = centers.shape[0]\n    best_centers = centers.copy()\n    best_radii = radii.copy()\n    best_sum = np.sum(radii)\n    \n    step_size = 0.01\n    \n    for iter in range(iterations):\n        # Gradually reduce step size\n        current_step = step_size * (1 - iter/iterations)\n        \n        # Try to move each circle slightly\n        for i in range(n):\n            original_center = centers[i].copy()\n            \n            # Try moving in random direction\n            direction = np.random.randn(2)\n            direction = direction / np.linalg.norm(direction)\n            centers[i] += direction * current_step\n            \n            # Ensure within bounds\n            centers[i] = np.clip(centers[i], 0.001, 0.999)\n            \n            # Recompute radii and check if improvement\n            new_radii = compute_max_radii(centers)\n            new_sum = np.sum(new_radii)\n            \n            if new_sum > best_sum:\n                best_centers = centers.copy()\n                best_radii = new_radii.copy()\n                best_sum = new_sum\n            else:\n                # Revert move\n                centers[i] = original_center\n    \n    return best_centers, best_radii\n\n\ndef construct_packing():\n    \"\"\"\n    Construct a specific arrangement of 26 circles in a unit square\n    that attempts to maximize the sum of their radii.\n\n    Returns:\n        Tuple of (centers, radii, sum_of_radii)\n        centers: np.array of shape (26, 2) with (x, y) coordinates\n        radii: np.array of shape (26) with radius of each circle\n        sum_of_radii: Sum of all radii\n    \"\"\"\n    # Define a more optimal arrangement based on hexagonal packing principles\n    n = 26\n    centers = np.zeros((n, 2))\n    \n    # Create a more efficient packing based on research findings\n    \n    # Large central circle\n    centers[0] = [0.5, 0.5]\n    \n    # First ring - 6 circles in hexagonal arrangement\n    r1 = 0.12  # Approximate radius for positioning\n    for i in range(6):\n        angle = 2 * np.pi * i / 6\n        centers[i+1] = [0.5 + 2.4*r1 * np.cos(angle), 0.5 + 2.4*r1 * np.sin(angle)]\n    \n    # Second ring - 12 circles\n    r2 = 0.09  # Smaller radius for second ring\n    for i in range(12):\n        angle = 2 * np.pi * i / 12 + np.pi/12  # Offset for staggering\n        centers[i+7] = [0.5 + 4.4*r1 * np.cos(angle), 0.5 + 4.4*r1 * np.sin(angle)]\n    \n    # Corner circles - larger to fill corners efficiently\n    centers[19] = [0.13, 0.13]  # Bottom-left\n    centers[20] = [0.87, 0.13]  # Bottom-right\n    centers[21] = [0.13, 0.87]  # Top-left\n    centers[22] = [0.87, 0.87]  # Top-right\n    \n    # Edge circles - positioned to fill gaps\n    centers[23] = [0.5, 0.13]   # Bottom middle\n    centers[24] = [0.5, 0.87]   # Top middle\n    centers[25] = [0.25, 0.5]   # Left middle\n    \n    # Ensure all circles are inside the unit square\n    centers = np.clip(centers, 0.001, 0.999)\n    \n    # Compute maximum valid radii for this configuration\n    radii = compute_max_radii(centers)\n    \n    # Optimize positions to improve packing\n    centers, radii = optimize_centers(centers, radii, iterations=5)\n    \n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    \n    return centers, radii, sum_radii\n# EVOLVE-BLOCK-END\n\n\n# This part remains fixed (not evolved)\ndef run_packing():\n    \"\"\"Run the circle packing constructor for n=26\"\"\"\n    centers, radii, sum_radii = construct_packing()\n    return centers, radii, sum_radii\n\n\ndef visualize(centers, radii):\n    \"\"\"\n    Visualize the circle packing\n\n    Args:\n        centers: np.array of shape (n, 2) with (x, y) coordinates\n        radii: np.array of shape (n) with radius of each circle\n    \"\"\"\n    import matplotlib.pyplot as plt\n    from matplotlib.patches import Circle\n\n    fig, ax = plt.subplots(figsize=(8, 8))\n\n    # Draw unit square\n    ax.set_xlim(0, 1)\n    ax.set_ylim(0, 1)\n    ax.set_aspect(\"equal\")\n    ax.grid(True)\n\n    # Draw circles\n    for i, (center, radius) in enumerate(zip(centers, radii)):\n        circle = Circle(center, radius, alpha=0.5)\n        ax.add_patch(circle)\n        ax.text(center[0], center[1], str(i), ha=\"center\", va=\"center\")\n\n    plt.title(f\"Circle Packing (n={len(centers)}, sum={sum(radii):.6f})\")\n    plt.show()\n\n\nif __name__ == \"__main__\":\n    centers, radii, sum_radii = run_packing()\n    print(f\"Sum of radii: {sum_radii}\")\n    # AlphaEvolve improved this to 2.635\n\n    # Uncomment to visualize:\n    visualize(centers, radii)",
+  "parent_id": "fe622f02-38ac-45be-b759-71ce4683e38f",
+  "generation": 4,
+  "iteration_found": 74,
+  "metrics": {
+    "validity": 1.0,
+    "sum_radii": 0.9801500339645757,
+    "target_ratio": 0.3719734474248864,
+    "combined_score": 0.3719734474248864,
+    "eval_time": 0.5745081901550293
+  },
+  "island": 0,
+  "changes": "Full rewrite",
+  "parent_metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.097517461621985,
+    "target_ratio": 0.7960218070671671,
+    "combined_score": 0.7960218070671671,
+    "eval_time": 7.478341817855835
+  },
+  "first_seen_checkpoint": 80,
+  "circles": {
+    "centers": [
+      [
+        0.49780489703414654,
+        0.49414623420541187
+      ],
+      [
+        0.7940054326091491,
+        0.5040567289235665
+      ],
+      [
+        0.6478869251833039,
+        0.7484709579790012
+      ],
+      [
+        0.3528284785178694,
+        0.7416798742802506
+      ],
+      [
+        0.19023092146493806,
+        0.4958430615666058
+      ],
+      [
+        0.33336221276369116,
+        0.24326491284009402
+      ],
+      [
+        0.6632013077879083,
+        0.26152105389563146
+      ],
+      [
+        0.9875101424506267,
+        0.6326302754448672
+      ],
+      [
+        0.8850569082792763,
+        0.8739544599580716
+      ],
+      [
+        0.641295639070183,
+        0.9967718019291966
+      ],
+      [
+        0.36022800370399166,
+        0.9964913335204171
+      ],
+      [
+        0.10465684767105043,
+        0.8660423538869114
+      ],
+      [
+        0.013256109850897925,
+        0.6399458850936488
+      ],
+      [
+        0.018189141113871758,
+        0.36879774873160726
+      ],
+      [
+        0.1067221516838179,
+        0.12324552642177306
+      ],
+      [
+        0.3615622909259697,
+        0.004581499242509941
+      ],
+      [
+        0.6354025882070924,
+        0.002558145058722031
+      ],
+      [
+        0.8591609605370709,
+        0.11215876179028472
+      ],
+      [
+        0.9853880033090556,
+        0.36157772057802157
+      ],
+      [
+        0.1304140462704747,
+        0.1254723114571514
+      ],
+      [
+        0.8618334685173245,
+        0.1385090121503811
+      ],
+      [
+        0.13,
+        0.87
+      ],
+      [
+        0.8699404295376622,
+        0.8827357866271339
+      ],
+      [
+        0.5038448192856787,
+        0.11681070594531097
+      ],
+      [
+        0.4963408617930999,
+        0.8811676621331331
+      ],
+      [
+        0.2637338091850979,
+        0.5104857783055946
+      ]
+    ],
+    "radii": [
+      0.04961962801542441,
+      0.07958943450583933,
+      0.10747375082172103,
+      0.09568762904971878,
+      0.033730979989220464,
+      0.11095764957702658,
+      0.11768135659449486,
+      0.012489857549373262,
+      0.00865361595452005,
+      0.003228198070803434,
+      0.0035086664795829225,
+      0.011614187015889269,
+      0.013256109850897925,
+      0.018189141113871758,
+      0.011859622637567374,
+      0.004581499242509941,
+      0.002558145058722031,
+      0.012182789476537014,
+      0.014611996690944373,
+      0.011936688856003269,
+      0.014302640347127898,
+      0.01403612161236679,
+      0.008828364128252511,
+      0.09757564150699329,
+      0.08371731502805434,
+      0.04121622580726465
+    ]
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "id": "9957414c-b0e9-4bdf-978e-5c11f88a383d",
+  "code": "# EVOLVE-BLOCK-START\n\"\"\"Billiard expansion physics simulation for n=26 circle packing\"\"\"\n\nimport numpy as np\n\n\ndef construct_packing():\n    \"\"\"\n    Construct an optimized arrangement of 26 circles using billiard-style\n    physics simulation with expanding circles.\n    \"\"\"\n    n = 26\n    best_sum = 0\n    best_centers = None\n    best_radii = None\n    \n    # Try multiple starting configurations\n    configs = [\n        create_6x5_minus4_pattern(n),\n        create_optimal_literature_pattern(n),\n        create_diagonal_bands(n),\n        create_quasi_hexagonal(n),\n    ]\n    \n    for seed in range(3):\n        np.random.seed(seed * 17 + 42)\n        configs.append(np.random.uniform(0.1, 0.9, (n, 2)))\n    \n    for config in configs:\n        centers = billiard_expansion(config.copy(), n)\n        centers = coordinate_descent_polish(centers, n)\n        radii = compute_optimal_radii(centers)\n        \n        total = np.sum(radii)\n        if total > best_sum:\n            best_sum = total\n            best_centers = centers.copy()\n            best_radii = radii.copy()\n    \n    return best_centers, best_radii\n\n\ndef create_6x5_minus4_pattern(n):\n    \"\"\"Create a 6x5 grid minus 4 corners = 26 circles.\"\"\"\n    centers = []\n    spacing_x = 1.0 / 6\n    spacing_y = 1.0 / 5\n    \n    for i in range(5):\n        for j in range(6):\n            x = spacing_x * (j + 0.5)\n            y = spacing_y * (i + 0.5)\n            # Skip 4 positions to get 26\n            if not ((i == 0 and j == 0) or (i == 0 and j == 5) or \n                    (i == 4 and j == 0) or (i == 4 and j == 5)):\n                centers.append([x, y])\n    \n    return np.array(centers[:n])\n\n\ndef create_optimal_literature_pattern(n):\n    \"\"\"Pattern inspired by known good solutions for n=26.\"\"\"\n    centers = []\n    \n    # Row 1: 5 circles\n    for i in range(5):\n        centers.append([0.1 + i * 0.2, 0.1])\n    \n    # Row 2: 5 circles offset\n    for i in range(5):\n        centers.append([0.2 + i * 0.18, 0.27])\n    \n    # Row 3: 6 circles\n    for i in range(6):\n        centers.append([0.08 + i * 0.17, 0.45])\n    \n    # Row 4: 5 circles offset\n    for i in range(5):\n        centers.append([0.18 + i * 0.18, 0.63])\n    \n    # Row 5: 5 circles\n    for i in range(5):\n        centers.append([0.1 + i * 0.2, 0.82])\n    \n    return np.array(centers[:n])\n\n\ndef create_diagonal_bands(n):\n    \"\"\"Create diagonal band pattern.\"\"\"\n    centers = []\n    for i in range(n):\n        row = i // 6\n        col = i % 6\n        x = 0.08 + col * 0.15 + (row % 2) * 0.08\n        y = 0.08 + row * 0.18\n        centers.append([min(0.92, x), min(0.92, y)])\n    return np.array(centers[:n])\n\n\ndef create_quasi_hexagonal(n):\n    \"\"\"Create quasi-hexagonal pattern optimized for square.\"\"\"\n    centers = []\n    r_est = 0.1  # estimated radius\n    h = r_est * np.sqrt(3)\n    \n    y = r_est\n    row = 0\n    while len(centers) < n and y < 1 - r_est/2:\n        offset = r_est if row % 2 else 0\n        x = r_est + offset\n        while x < 1 - r_est/2 and len(centers) < n:\n            centers.append([x, y])\n            x += 2 * r_est\n        y += h\n        row += 1\n    \n    while len(centers) < n:\n        centers.append([0.5, 0.5])\n    \n    return np.array(centers[:n])\n\n\ndef billiard_expansion(centers, n, steps=1500):\n    \"\"\"Physics simulation with expanding circles.\"\"\"\n    velocities = np.zeros((n, 2))\n    radii = np.ones(n) * 0.01\n    \n    expansion_rate = 0.0002\n    damping = 0.85\n    \n    for step in range(steps):\n        # Expand radii slowly\n        radii += expansion_rate\n        \n        # Compute forces\n        forces = np.zeros((n, 2))\n        \n        # Circle-circle repulsion\n        for i in range(n):\n            for j in range(i + 1, n):\n                diff = centers[i] - centers[j]\n                dist = np.linalg.norm(diff) + 1e-10\n                overlap = radii[i] + radii[j] - dist\n                \n                if overlap > 0:\n                    # Strong repulsion when overlapping\n                    force_mag = overlap * 2.0\n                    force_dir = diff / dist\n                    forces[i] += force_mag * force_dir\n                    forces[j] -= force_mag * force_dir\n        \n        # Wall repulsion\n        for i in range(n):\n            x, y = centers[i]\n            r = radii[i]\n            \n            if x - r < 0:\n                forces[i, 0] += (r - x) * 3.0\n            if x + r > 1:\n                forces[i, 0] -= (x + r - 1) * 3.0\n            if y - r < 0:\n                forces[i, 1] += (r - y) * 3.0\n            if y + r > 1:\n                forces[i, 1] -= (y + r - 1) * 3.0\n        \n        # Update velocities and positions\n        velocities = damping * velocities + forces * 0.1\n        centers += velocities * 0.05\n        \n        # Clamp to valid region\n        centers = np.clip(centers, 0.02, 0.98)\n        \n        # Clamp radii to valid\n        for i in range(n):\n            max_r = min(centers[i, 0], centers[i, 1], \n                       1 - centers[i, 0], 1 - centers[i, 1])\n            radii[i] = min(radii[i], max_r)\n    \n    return centers\n\n\ndef compute_optimal_radii(centers):\n    \"\"\"Compute maximum non-overlapping radii.\"\"\"\n    n = centers.shape[0]\n    radii = np.array([min(c[0], c[1], 1-c[0], 1-c[1]) for c in centers])\n    \n    for _ in range(30):\n        changed = False\n        for i in range(n):\n            for j in range(i + 1, n):\n                dist = np.linalg.norm(centers[i] - centers[j])\n                if radii[i] + radii[j] > dist - 1e-10:\n                    scale = (dist * 0.99999) / (radii[i] + radii[j])\n                    radii[i] *= scale\n                    radii[j] *= scale\n                    changed = True\n        if not changed:\n            break\n    \n    return radii\n\n\ndef coordinate_descent_polish(centers, n, iterations=300):\n    \"\"\"Polish solution using coordinate descent.\"\"\"\n    step = 0.008\n    \n    for it in range(iterations):\n        current_step = step * (1 - it / iterations)\n        \n        for i in range(n):\n            best_improvement = 0\n            best_move = (0, 0)\n            current_sum = np.sum(compute_optimal_radii(centers))\n            \n            for dx, dy in [(1,0),(-1,0),(0,1),(0,-1),(1,1),(-1,-1),(1,-1),(-1,1)]:\n                test = centers.copy()\n                test[i, 0] += dx * current_step\n                test[i, 1] += dy * current_step\n                test[i] = np.clip(test[i], 0.01, 0.99)\n                \n                new_sum = np.sum(compute_optimal_radii(test))\n                if new_sum - current_sum > best_improvement:\n                    best_improvement = new_sum - current_sum\n                    best_move = (dx * current_step, dy * current_step)\n            \n            if best_improvement > 0:\n                centers[i, 0] += best_move[0]\n                centers[i, 1] += best_move[1]\n                centers[i] = np.clip(centers[i], 0.01, 0.99)\n    \n    return centers\n\n\n# EVOLVE-BLOCK-END\n\n\n# This part remains fixed (not evolved)\ndef run_packing():\n    \"\"\"Run the circle packing constructor for n=26\"\"\"\n    centers, radii = construct_packing()\n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    return centers, radii, sum_radii\n",
+  "parent_id": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+  "generation": 12,
+  "iteration_found": 12,
+  "metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.1121365937027496,
+    "target_ratio": 0.8015698647828272,
+    "combined_score": 0.8015698647828272
+  },
+  "island": 0,
+  "changes": "",
+  "parent_metrics": {
+    "validity": 1.0,
+    "sum_radii": 0.9597642169962064,
+    "target_ratio": 0.36423689449571406,
+    "combined_score": 0.36423689449571406
+  },
+  "first_seen_checkpoint": 12,
+  "circles": {
+    "centers": [
+      [
+        0.40559735554302123,
+        0.9465446784609803
+      ],
+      [
+        0.9432463697578406,
+        0.7627093677985477
+      ],
+      [
+        0.10569745838187625,
+        0.026986666666666666
+      ],
+      [
+        0.047893333333333336,
+        0.7334827229779044
+      ],
+      [
+        0.738620474216258,
+        0.8312948732533557
+      ],
+      [
+        0.0351901505697548,
+        0.9256753024176382
+      ],
+      [
+        0.9293509921681806,
+        0.24115601613390203
+      ],
+      [
+        0.06386476621411714,
+        0.10763588269377906
+      ],
+      [
+        0.3205613889327062,
+        0.693060842554175
+      ],
+      [
+        0.3624055185659499,
+        0.10476379689246132
+      ],
+      [
+        0.8897371694776725,
+        0.0877691447707008
+      ],
+      [
+        0.18075531298668657,
+        0.31014998648579123
+      ],
+      [
+        0.5193528777064491,
+        0.9235704040738284
+      ],
+      [
+        0.050226732524367955,
+        0.6285324411087447
+      ],
+      [
+        0.6037120576236741,
+        0.04114666666666667
+      ],
+      [
+        0.7546966801500683,
+        0.051916522157888105
+      ],
+      [
+        0.020559213071489606,
+        0.9794534321275684
+      ],
+      [
+        0.9368797300625527,
+        0.9368732421893727
+      ],
+      [
+        0.19257169223201506,
+        0.0698681461891816
+      ],
+      [
+        0.935404614225541,
+        0.440367723283989
+      ],
+      [
+        0.06453321261808732,
+        0.5146637593124005
+      ],
+      [
+        0.05589523900334789,
+        0.8369532444887559
+      ],
+      [
+        0.14052113274444838,
+        0.9300594379905461
+      ],
+      [
+        0.6374495741389443,
+        0.3325820830427165
+      ],
+      [
+        0.5102266636051339,
+        0.0530912667136684
+      ],
+      [
+        0.8911450351589111,
+        0.6080709826053666
+      ]
+    ],
+    "radii": [
+      0.03964468259666912,
+      0.05432452364479786,
+      0.026986666666666666,
+      0.04788865621139347,
+      0.1614849287008715,
+      0.0351873619511393,
+      0.053592597165507565,
+      0.061046492419060044,
+      0.22767906995559997,
+      0.10349734672022284,
+      0.0877691447707008,
+      0.1706901447240308,
+      0.0764056356601353,
+      0.05022530921276912,
+      0.0411402795017917,
+      0.051916522157888105,
+      0.02054493967417935,
+      0.06312026993744735,
+      0.0698681461891816,
+      0.06459345106952927,
+      0.06453321261808732,
+      0.05588566573477436,
+      0.06993161668442543,
+      0.25223848675621174,
+      0.0530912667136684,
+      0.108850176266001
+    ]
+  }
+}

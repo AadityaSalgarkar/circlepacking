@@ -1,0 +1,27 @@
+{
+  "checkpoint": 3,
+  "iteration": 3,
+  "best_program_id": "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8",
+  "best_metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.4012614907693197,
+    "target_ratio": 0.9112946834039165,
+    "combined_score": 0.9112946834039165
+  },
+  "feature_map": {},
+  "islands": [],
+  "archive": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae",
+    "a6a9c10a-919e-4938-846b-04464ad779c1",
+    "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+    "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8"
+  ],
+  "island_generations": [],
+  "program_count": 4,
+  "program_ids": [
+    "923f1503-d39d-4c68-acf1-59eab42f0eae",
+    "a6a9c10a-919e-4938-846b-04464ad779c1",
+    "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+    "7b54c75b-73e6-47cb-b8d9-ddbc432e4fe8"
+  ]
+}

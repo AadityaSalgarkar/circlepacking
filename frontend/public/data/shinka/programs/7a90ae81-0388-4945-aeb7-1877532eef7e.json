@@ -1,0 +1,158 @@
+{
+  "id": "7a90ae81-0388-4945-aeb7-1877532eef7e",
+  "code": "# EVOLVE-BLOCK-START\n\"\"\"Gradient-descent based circle packing optimization for n=26 circles\"\"\"\n\nimport numpy as np\n\n\ndef construct_packing():\n    \"\"\"\n    Construct an optimized arrangement of 26 circles in a unit square\n    using gradient descent optimization with multiple starting configurations.\n    \"\"\"\n    n = 26\n    best_sum = 0\n    best_centers = None\n    best_radii = None\n\n    # Try multiple initial configurations\n    initial_configs = [\n        generate_grid_init(n),\n        generate_hex_init(n),\n        generate_optimal_seed(n),\n        generate_corner_focused(n),\n    ]\n\n    np.random.seed(42)\n    for _ in range(3):\n        initial_configs.append(generate_random_init(n))\n\n    for init_centers in initial_configs:\n        centers, radii = optimize_packing(init_centers.copy(), n)\n        sum_r = np.sum(radii)\n        if sum_r > best_sum:\n            best_sum = sum_r\n            best_centers = centers.copy()\n            best_radii = radii.copy()\n\n    return best_centers, best_radii\n\n\ndef generate_grid_init(n):\n    \"\"\"Generate initial positions on a 6x5 grid pattern for 26 circles.\"\"\"\n    centers = []\n    rows, cols = 5, 6\n    spacing_x = 1.0 / (cols + 1)\n    spacing_y = 1.0 / (rows + 1)\n    for i in range(rows):\n        for j in range(cols):\n            if len(centers) < n:\n                x = (j + 1) * spacing_x\n                y = (i + 1) * spacing_y\n                centers.append([x, y])\n    return np.array(centers[:n])\n\n\ndef generate_hex_init(n):\n    \"\"\"Generate initial positions in hexagonal pattern.\"\"\"\n    centers = []\n    spacing = 0.17\n    for row in range(7):\n        y = 0.08 + row * spacing * 0.866\n        if y > 0.92:\n            break\n        offset = spacing / 2 if row % 2 else 0\n        x = 0.08 + offset\n        while x < 0.92 and len(centers) < n:\n            centers.append([x, y])\n            x += spacing\n    while len(centers) < n:\n        centers.append([np.random.uniform(0.1, 0.9), np.random.uniform(0.1, 0.9)])\n    return np.array(centers[:n])\n\n\ndef generate_random_init(n):\n    \"\"\"Generate random initial positions.\"\"\"\n    return np.random.uniform(0.1, 0.9, (n, 2))\n\n\ndef generate_optimal_seed(n):\n    \"\"\"Generate positions based on patterns good for n=26.\"\"\"\n    centers = []\n    margin = 0.08\n    # 4 corner circles\n    for x in [margin, 1-margin]:\n        for y in [margin, 1-margin]:\n            centers.append([x, y])\n    # Edge circles\n    for i in range(3):\n        t = (i + 1) / 4\n        centers.extend([[t, margin], [t, 1-margin], [margin, t], [1-margin, t]])\n    # Inner circles\n    inner = [[0.5, 0.5], [0.3, 0.3], [0.7, 0.3], [0.3, 0.7], [0.7, 0.7],\n             [0.5, 0.3], [0.5, 0.7], [0.3, 0.5], [0.7, 0.5], [0.5, 0.15]]\n    centers.extend(inner)\n    return np.array(centers[:n])\n\n\ndef generate_corner_focused(n):\n    \"\"\"Generate with emphasis on corner efficiency.\"\"\"\n    centers = []\n    c = 0.06\n    for x in [c, 1-c]:\n        for y in [c, 1-c]:\n            centers.append([x, y])\n    for i in range(4):\n        t = (i + 1) / 5\n        centers.extend([[t, 0.06], [t, 0.94]])\n    for i in range(2):\n        t = (i + 1) / 3\n        centers.extend([[0.06, t], [0.94, t]])\n    for i in range(n - len(centers)):\n        x = 0.2 + 0.6 * ((i % 4) / 3)\n        y = 0.2 + 0.6 * ((i // 4) / 2)\n        centers.append([x, y])\n    return np.array(centers[:n])\n\n\ndef compute_max_radii(centers):\n    \"\"\"Compute maximum valid radii with iterative refinement.\"\"\"\n    n = centers.shape[0]\n    radii = np.zeros(n)\n\n    for i in range(n):\n        x, y = centers[i]\n        radii[i] = min(x, y, 1 - x, 1 - y)\n\n    for _ in range(15):\n        changed = False\n        for i in range(n):\n            for j in range(i + 1, n):\n                dist = np.linalg.norm(centers[i] - centers[j])\n                if dist < 1e-10:\n                    dist = 1e-10\n                if radii[i] + radii[j] > dist:\n                    scale = dist / (radii[i] + radii[j]) * 0.9999\n                    radii[i] *= scale\n                    radii[j] *= scale\n                    changed = True\n        if not changed:\n            break\n    return radii\n\n\ndef optimize_packing(centers, n, iterations=600):\n    \"\"\"Optimize circle positions using gradient descent.\"\"\"\n    lr = 0.012\n\n    for iteration in range(iterations):\n        radii = compute_max_radii(centers)\n        gradients = np.zeros_like(centers)\n\n        eps = 0.0008\n        for i in range(n):\n            for dim in range(2):\n                centers[i, dim] += eps\n                radii_plus = compute_max_radii(centers)\n                sum_plus = np.sum(radii_plus)\n\n                centers[i, dim] -= 2 * eps\n                radii_minus = compute_max_radii(centers)\n                sum_minus = np.sum(radii_minus)\n\n                centers[i, dim] += eps\n                gradients[i, dim] = (sum_plus - sum_minus) / (2 * eps)\n\n        # Wall margin repulsion\n        wall_margin = 0.02\n        for i in range(n):\n            x, y = centers[i]\n            if x < wall_margin:\n                gradients[i, 0] += 0.08 * (wall_margin - x)\n            if x > 1 - wall_margin:\n                gradients[i, 0] -= 0.08 * (x - (1 - wall_margin))\n            if y < wall_margin:\n                gradients[i, 1] += 0.08 * (wall_margin - y)\n            if y > 1 - wall_margin:\n                gradients[i, 1] -= 0.08 * (y - (1 - wall_margin))\n\n        centers += lr * gradients\n        centers = np.clip(centers, 0.01, 0.99)\n\n        if iteration % 100 == 99:\n            lr *= 0.7\n\n    radii = compute_max_radii(centers)\n    return centers, radii\n\n\n# EVOLVE-BLOCK-END\n\n\n# This part remains fixed (not evolved)\ndef run_packing():\n    \"\"\"Run the circle packing constructor for n=26\"\"\"\n    centers, radii = construct_packing()\n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    return centers, radii, sum_radii",
+  "parent_id": "923f1503-d39d-4c68-acf1-59eab42f0eae",
+  "generation": 13,
+  "iteration_found": 13,
+  "metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.3979302295480496,
+    "target_ratio": 0.9100304476463187,
+    "combined_score": 0.9100304476463187
+  },
+  "island": 0,
+  "changes": "",
+  "parent_metrics": {
+    "validity": 1.0,
+    "sum_radii": 0.9597642169962064,
+    "target_ratio": 0.36423689449571406,
+    "combined_score": 0.36423689449571406
+  },
+  "first_seen_checkpoint": 13,
+  "circles": {
+    "centers": [
+      [
+        0.6895164678614565,
+        0.3554885195417027
+      ],
+      [
+        0.3394187264911431,
+        0.6701917847814268
+      ],
+      [
+        0.23936065578916624,
+        0.1945324524721539
+      ],
+      [
+        0.3631075985387111,
+        0.3858947879569148
+      ],
+      [
+        0.8873008947023479,
+        0.866544788308394
+      ],
+      [
+        0.48904636632641535,
+        0.8915305830284319
+      ],
+      [
+        0.6750380442035412,
+        0.11136349872171711
+      ],
+      [
+        0.9121887028475144,
+        0.6645209780649329
+      ],
+      [
+        0.6898523732046683,
+        0.9101364908304823
+      ],
+      [
+        0.4703250869246126,
+        0.09367064612483675
+      ],
+      [
+        0.5007767737747056,
+        0.5053914178605632
+      ],
+      [
+        0.6916784214151924,
+        0.6717759626201765
+      ],
+      [
+        0.09473827646603843,
+        0.5932470374851897
+      ],
+      [
+        0.3617653510269362,
+        0.22957114307498938
+      ],
+      [
+        0.14305884047858167,
+        0.35907505571626097
+      ],
+      [
+        0.8778176917363286,
+        0.47531535194103736
+      ],
+      [
+        0.4568949945751584,
+        0.6942075013128663
+      ],
+      [
+        0.2166074843014775,
+        0.8301541563876081
+      ],
+      [
+        0.9311465274974158,
+        0.29033463592992204
+      ],
+      [
+        0.5501290164265866,
+        0.28871271401664816
+      ],
+      [
+        0.2965313089598445,
+        0.08076044346553168
+      ],
+      [
+        0.6762093818336109,
+        0.44170640911337056
+      ],
+      [
+        0.10874528428263135,
+        0.10900334661997713
+      ],
+      [
+        0.7641151831897495,
+        0.28574360429726003
+      ],
+      [
+        0.2959675159210994,
+        0.5607290832915709
+      ],
+      [
+        0.8863204067789093,
+        0.11470573235156
+      ]
+    ],
+    "radii": [
+      0.0021713974564918125,
+      0.010450067052313647,
+      0.0471787230637053,
+      0.07600743987681284,
+      0.08438623923550959,
+      0.1080296641671213,
+      0.09709224370088941,
+      0.06951543604817002,
+      0.08878488132866803,
+      0.09298992317021951,
+      0.10388242978826524,
+      0.14669272979782705,
+      0.09473827646603843,
+      0.07973088358004164,
+      0.14305884047858167,
+      0.12218230826367138,
+      0.08913624788906833,
+      0.16984584361239186,
+      0.06824451345900157,
+      0.11611333021702083,
+      0.08013707041364367,
+      0.08131838540697109,
+      0.10874528428263135,
+      0.0974612120483224,
+      0.10730950511919604,
+      0.11272735362547559
+    ]
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "id": "7e456108-b3ac-4b10-9572-8f415b801912",
+  "code": "# EVOLVE-BLOCK-START\n\"\"\"Hybrid grid optimization with force relaxation for n=26 circles\"\"\"\n\nimport numpy as np\n\n\ndef construct_packing():\n    \"\"\"\n    Construct an optimized arrangement of 26 circles in a unit square\n    using a hybrid approach combining grid initialization and force relaxation.\n\n    Returns:\n        Tuple of (centers, radii)\n        centers: np.array of shape (26, 2) with (x, y) coordinates\n        radii: np.array of shape (26) with radius of each circle\n    \"\"\"\n    n = 26\n    np.random.seed(42)\n\n    # Try multiple initial configurations and keep the best\n    best_sum = 0\n    best_centers = None\n    best_radii = None\n\n    configs = []\n\n    # Config 1: Modified grid with strategic placement\n    configs.append(create_optimized_grid(n))\n\n    # Config 2: Hexagonal-inspired pattern\n    configs.append(create_hex_pattern(n))\n\n    # Config 3: Mixed pattern with corner emphasis\n    configs.append(create_corner_emphasis_pattern(n))\n\n    # Config 4: Based on best known solution pattern\n    configs.append(create_best_known_pattern(n))\n\n    # Config 5: Quasi-optimal start\n    configs.append(create_quasi_optimal(n))\n\n    # Config 6-8: Random perturbations of best pattern\n    for seed in range(3):\n        np.random.seed(seed * 13 + 7)\n        base = create_best_known_pattern(n)\n        base += np.random.uniform(-0.03, 0.03, (n, 2))\n        base = np.clip(base, 0.05, 0.95)\n        configs.append(base)\n\n    for initial_centers in configs:\n        # Apply gentler force-based relaxation\n        centers = force_relaxation(initial_centers.copy(), iterations=600,\n                                   force_strength=0.02, damping=0.90)\n\n        # Compute radii with iterative refinement\n        radii = compute_optimal_radii(centers, iterations=50)\n\n        sum_radii = np.sum(radii)\n        if sum_radii > best_sum:\n            best_sum = sum_radii\n            best_centers = centers.copy()\n            best_radii = radii.copy()\n\n    # Gradient-based refinement\n    best_centers, best_radii = gradient_refinement(best_centers, n, iterations=400)\n\n    # Final refinement with local search\n    best_centers, best_radii = local_search_optimization(best_centers, best_radii, iterations=300)\n\n    return best_centers, best_radii\n\n\ndef create_optimized_grid(n):\n    \"\"\"Create an optimized 5x5 + 1 grid pattern\"\"\"\n    centers = np.zeros((n, 2))\n\n    # Create a 5x5 grid = 25 circles\n    spacing = 0.20\n    offset = 0.10\n    idx = 0\n    for i in range(5):\n        for j in range(5):\n            if idx < 25:\n                centers[idx] = [offset + j * spacing, offset + i * spacing]\n                idx += 1\n\n    # Place 26th circle in optimal gap\n    centers[25] = [0.5, 0.5]  # Center\n\n    return centers\n\n\ndef create_hex_pattern(n):\n    \"\"\"Create a hexagonal-inspired pattern\"\"\"\n    centers = np.zeros((n, 2))\n\n    # Row configuration for hexagonal packing\n    rows = [\n        (0.10, [0.10, 0.30, 0.50, 0.70, 0.90]),  # 5 circles\n        (0.27, [0.20, 0.40, 0.60, 0.80]),         # 4 circles\n        (0.44, [0.10, 0.30, 0.50, 0.70, 0.90]),  # 5 circles\n        (0.61, [0.20, 0.40, 0.60, 0.80]),         # 4 circles\n        (0.78, [0.10, 0.30, 0.50, 0.70, 0.90]),  # 5 circles\n        (0.92, [0.25, 0.50, 0.75]),               # 3 circles = 26 total\n    ]\n\n    idx = 0\n    for y, x_positions in rows:\n        for x in x_positions:\n            if idx < n:\n                centers[idx] = [x, y]\n                idx += 1\n\n    return centers\n\n\ndef create_corner_emphasis_pattern(n):\n    \"\"\"Create pattern with emphasis on corners which can hold larger circles\"\"\"\n    centers = np.zeros((n, 2))\n\n    # Corner circles (4)\n    margin = 0.10\n    centers[0] = [margin, margin]\n    centers[1] = [1 - margin, margin]\n    centers[2] = [margin, 1 - margin]\n    centers[3] = [1 - margin, 1 - margin]\n\n    # Edge midpoints (4)\n    centers[4] = [0.5, margin]\n    centers[5] = [0.5, 1 - margin]\n    centers[6] = [margin, 0.5]\n    centers[7] = [1 - margin, 0.5]\n\n    # Inner ring (8)\n    inner_r = 0.25\n    for i in range(8):\n        angle = np.pi * i / 4 + np.pi / 8\n        centers[8 + i] = [0.5 + inner_r * np.cos(angle), 0.5 + inner_r * np.sin(angle)]\n\n    # Fill remaining 10 circles in available spaces\n    remaining_positions = [\n        [0.30, 0.10], [0.70, 0.10], [0.30, 0.90], [0.70, 0.90],\n        [0.10, 0.30], [0.10, 0.70], [0.90, 0.30], [0.90, 0.70],\n        [0.5, 0.5], [0.5, 0.35]\n    ]\n    for i, pos in enumerate(remaining_positions):\n        centers[16 + i] = pos\n\n    return centers\n\n\ndef create_best_known_pattern(n):\n    \"\"\"Create pattern based on best known solutions for n=26\"\"\"\n    # This is inspired by patterns that achieved sum ~ 2.40\n    centers = np.array([\n        [0.48, 0.24], [0.08, 0.92], [0.37, 0.93], [0.38, 0.09],\n        [0.35, 0.75], [0.81, 0.33], [0.65, 0.66], [0.62, 0.43],\n        [0.68, 0.28], [0.08, 0.08], [0.89, 0.74], [0.09, 0.51],\n        [0.88, 0.51], [0.92, 0.92], [0.25, 0.91], [0.86, 0.14],\n        [0.94, 0.33], [0.13, 0.72], [0.25, 0.09], [0.37, 0.23],\n        [0.55, 0.12], [0.14, 0.29], [0.52, 0.89], [0.36, 0.51],\n        [0.52, 0.31], [0.74, 0.89]\n    ])\n    return centers[:n]\n\n\ndef create_quasi_optimal(n):\n    \"\"\"Create a quasi-optimal pattern with good spacing\"\"\"\n    centers = []\n\n    # Edge circles with small spacing from walls\n    edge_margin = 0.08\n\n    # Bottom edge: 5 circles\n    for i in range(5):\n        centers.append([0.1 + i * 0.2, edge_margin])\n\n    # Top edge: 5 circles\n    for i in range(5):\n        centers.append([0.1 + i * 0.2, 1 - edge_margin])\n\n    # Left edge (excluding corners): 3 circles\n    for i in range(3):\n        centers.append([edge_margin, 0.25 + i * 0.25])\n\n    # Right edge (excluding corners): 3 circles\n    for i in range(3):\n        centers.append([1 - edge_margin, 0.25 + i * 0.25])\n\n    # Interior: 10 circles in 2 rows\n    for i in range(5):\n        centers.append([0.15 + i * 0.175, 0.35])\n    for i in range(5):\n        centers.append([0.15 + i * 0.175, 0.65])\n\n    return np.array(centers[:n])\n\n\ndef force_relaxation(centers, iterations=500, force_strength=0.05, damping=0.95):\n    \"\"\"Apply force-based relaxation to spread circles apart\"\"\"\n    n = centers.shape[0]\n    velocity = np.zeros_like(centers)\n\n    for iteration in range(iterations):\n        forces = np.zeros_like(centers)\n\n        # Repulsion between circles\n        for i in range(n):\n            for j in range(i + 1, n):\n                diff = centers[i] - centers[j]\n                dist = np.linalg.norm(diff) + 1e-10\n\n                # Repulsive force inversely proportional to distance squared\n                force_magnitude = force_strength / (dist * dist)\n                force_dir = diff / dist\n\n                forces[i] += force_magnitude * force_dir\n                forces[j] -= force_magnitude * force_dir\n\n        # Boundary forces (push away from edges, but not too much)\n        boundary_force = force_strength * 0.5\n        for i in range(n):\n            x, y = centers[i]\n            # Push away from boundaries\n            forces[i, 0] += boundary_force / (x + 0.01) ** 2\n            forces[i, 0] -= boundary_force / (1 - x + 0.01) ** 2\n            forces[i, 1] += boundary_force / (y + 0.01) ** 2\n            forces[i, 1] -= boundary_force / (1 - y + 0.01) ** 2\n\n        # Update velocity and position\n        velocity = damping * velocity + forces\n        centers = centers + velocity * 0.01\n\n        # Keep within bounds\n        centers = np.clip(centers, 0.05, 0.95)\n\n    return centers\n\n\ndef compute_optimal_radii(centers, iterations=30):\n    \"\"\"Compute maximum radii with iterative refinement\"\"\"\n    n = centers.shape[0]\n    radii = np.ones(n) * 0.5\n\n    for _ in range(iterations):\n        # Distance to walls\n        for i in range(n):\n            x, y = centers[i]\n            wall_limit = min(x, y, 1 - x, 1 - y)\n            radii[i] = min(radii[i], wall_limit)\n\n        # Distance to other circles\n        for i in range(n):\n            for j in range(i + 1, n):\n                dist = np.linalg.norm(centers[i] - centers[j])\n                if radii[i] + radii[j] > dist:\n                    # Distribute proportionally to current radii\n                    total = radii[i] + radii[j]\n                    ratio_i = radii[i] / total\n                    ratio_j = radii[j] / total\n                    radii[i] = dist * ratio_i * 0.9999\n                    radii[j] = dist * ratio_j * 0.9999\n\n    return radii\n\n\ndef local_search_optimization(centers, radii, iterations=100):\n    \"\"\"Fine-tune positions using local search\"\"\"\n    n = centers.shape[0]\n    best_sum = np.sum(radii)\n    best_centers = centers.copy()\n    best_radii = radii.copy()\n\n    step_size = 0.015\n\n    for iteration in range(iterations):\n        # Reduce step size over time\n        current_step = step_size * (1 - 0.7 * iteration / iterations)\n\n        improved = False\n        for i in range(n):\n            # Try small perturbations in each direction\n            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)]:\n                test_centers = best_centers.copy()\n                test_centers[i, 0] += dx * current_step\n                test_centers[i, 1] += dy * current_step\n\n                # Check bounds\n                if 0.01 < test_centers[i, 0] < 0.99 and 0.01 < test_centers[i, 1] < 0.99:\n                    test_radii = compute_optimal_radii(test_centers, iterations=15)\n                    test_sum = np.sum(test_radii)\n\n                    if test_sum > best_sum:\n                        best_sum = test_sum\n                        best_centers = test_centers.copy()\n                        best_radii = test_radii.copy()\n                        improved = True\n\n        # If no improvement, try larger random jumps\n        if not improved and iteration % 20 == 0:\n            for _ in range(5):\n                i = np.random.randint(n)\n                test_centers = best_centers.copy()\n                test_centers[i] += np.random.uniform(-0.05, 0.05, 2)\n                test_centers[i] = np.clip(test_centers[i], 0.02, 0.98)\n                test_radii = compute_optimal_radii(test_centers, iterations=15)\n                test_sum = np.sum(test_radii)\n                if test_sum > best_sum:\n                    best_sum = test_sum\n                    best_centers = test_centers.copy()\n                    best_radii = test_radii.copy()\n\n    return best_centers, best_radii\n\n\ndef gradient_refinement(centers, n, iterations=300):\n    \"\"\"Fine-tune using numerical gradient ascent.\"\"\"\n    best_centers = centers.copy()\n    best_radii = compute_optimal_radii(centers, iterations=30)\n    best_sum = np.sum(best_radii)\n\n    lr = 0.008\n    eps = 0.0006\n\n    for it in range(iterations):\n        gradients = np.zeros_like(centers)\n\n        for i in range(n):\n            for dim in range(2):\n                centers[i, dim] += eps\n                sum_plus = np.sum(compute_optimal_radii(centers, iterations=10))\n                centers[i, dim] -= 2 * eps\n                sum_minus = np.sum(compute_optimal_radii(centers, iterations=10))\n                centers[i, dim] += eps\n                gradients[i, dim] = (sum_plus - sum_minus) / (2 * eps)\n\n        centers += lr * gradients\n        centers = np.clip(centers, 0.01, 0.99)\n\n        current_radii = compute_optimal_radii(centers, iterations=20)\n        current_sum = np.sum(current_radii)\n\n        if current_sum > best_sum:\n            best_sum = current_sum\n            best_centers = centers.copy()\n            best_radii = current_radii.copy()\n\n        if it % 60 == 59:\n            lr *= 0.75\n\n    return best_centers, best_radii\n\n\n# EVOLVE-BLOCK-END\n\n\n# This part remains fixed (not evolved)\ndef run_packing():\n    \"\"\"Run the circle packing constructor for n=26\"\"\"\n    centers, radii = construct_packing()\n    # Calculate the sum of radii\n    sum_radii = np.sum(radii)\n    return centers, radii, sum_radii",
+  "parent_id": "5503e870-3f2a-42fc-a53d-1761e02de1e7",
+  "generation": 15,
+  "iteration_found": 15,
+  "metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.4374225152754883,
+    "target_ratio": 0.9250180323626143,
+    "combined_score": 0.9250180323626143
+  },
+  "island": 0,
+  "changes": "",
+  "parent_metrics": {
+    "validity": 1.0,
+    "sum_radii": 2.36915541225031,
+    "target_ratio": 0.8991102133777268,
+    "combined_score": 0.8991102133777268
+  },
+  "first_seen_checkpoint": 15,
+  "circles": {
+    "centers": [
+      [
+        0.42117807861654477,
+        0.2837285583437698
+      ],
+      [
+        0.07069270704490137,
+        0.9298272001494707
+      ],
+      [
+        0.35972462605414646,
+        0.9609089884700815
+      ],
+      [
+        0.4042556361818768,
+        0.037199716690394305
+      ],
+      [
+        0.30952422953044817,
+        0.6834293117077352
+      ],
+      [
+        0.9226714386837517,
+        0.3745196432571312
+      ],
+      [
+        0.6825103727207176,
+        0.655627713325394
+      ],
+      [
+        0.5085195397384304,
+        0.5009161733931777
+      ],
+      [
+        0.7684156762405113,
+        0.10238957068801721
+      ],
+      [
+        0.07808806246570422,
+        0.07703655398241896
+      ],
+      [
+        0.8995702952693561,
+        0.7522782357760849
+      ],
+      [
+        0.09890034413588816,
+        0.5708469136401454
+      ],
+      [
+        0.8978950799275717,
+        0.551198280799316
+      ],
+      [
+        0.9254952453696239,
+        0.9260693571903746
+      ],
+      [
+        0.23610506141441756,
+        0.9018947244979814
+      ],
+      [
+        0.9335936868591348,
+        0.06639188911343916
+      ],
+      [
+        0.915867789038267,
+        0.21452245342548956
+      ],
+      [
+        0.09605480984457153,
+        0.7656685982304052
+      ],
+      [
+        0.2770417767010507,
+        0.12647037178208423
+      ],
+      [
+        0.09345616252754248,
+        0.2494735373304286
+      ],
+      [
+        0.5353317313928825,
+        0.13166158482527288
+      ],
+      [
+        0.06509687364606756,
+        0.40763425588386165
+      ],
+      [
+        0.5050073143331262,
+        0.8654221922369435
+      ],
+      [
+        0.28593640949398164,
+        0.40274816304667665
+      ],
+      [
+        0.7204164564544493,
+        0.36019085898032455
+      ],
+      [
+        0.7472727668537225,
+        0.8928656044906909
+      ]
+    ],
+    "radii": [
+      0.030012513237006603,
+      0.06994734397776851,
+      0.03903447946397283,
+      0.028640244048247873,
+      0.13178225777776473,
+      0.04363166447160213,
+      0.1378970560716123,
+      0.0935548542080283,
+      0.10193156814109514,
+      0.07703655398241896,
+      0.09959501961120387,
+      0.0988332925223488,
+      0.10144500006054032,
+      0.07393064280962536,
+      0.09779007630007923,
+      0.0661635200381671,
+      0.08300893179267085,
+      0.09598968742215158,
+      0.12647037178208423,
+      0.09345616252754248,
+      0.13166158482527288,
+      0.06509687364606756,
+      0.1345778077630565,
+      0.14969064456838305,
+      0.1591099687174681,
+      0.10713439550930914
+    ]
+  }
+}

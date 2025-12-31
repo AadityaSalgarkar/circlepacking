@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  /* Clean Laboratory palette */
+  --color-background: #ffffff;
+  --color-foreground: #1e293b;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  --color-ring: #2563eb;
+
+  /* Scientific blue accent */
+  --color-primary: #2563eb;
+  --color-primary-foreground: #f8fafc;
+
+  /* Island colors */
+  --color-island-0: #1f77b4;
+  --color-island-1: #ff7f0e;
+  --color-island-2: #2ca02c;
+  --color-island-3: #d62728;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Scientific grid pattern background */
+.lab-grid {
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
